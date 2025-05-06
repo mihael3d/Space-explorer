@@ -1,4 +1,4 @@
-package kz.mihael3d.spaceexplorer
+package kz.mihael3d.spaceexplorer.ui.main
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
