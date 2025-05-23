@@ -8,30 +8,53 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kz.mihael3d.spaceexplorer.core.nasaApi.models.ApodItem
 import kz.mihael3d.spaceexplorer.core.nasaApi.provideApodApi
+import kz.mihael3d.spaceexplorer.core.thespacedevsApi.models.LaunchItem
+import kz.mihael3d.spaceexplorer.core.thespacedevsApi.provideThespacedevsApi
 
-open class ApodViewModel: ViewModel() {
+ class ApodViewModel: ViewModel() {
 
-    private val api = provideApodApi()
+    private val apodApi = provideApodApi()
+    private val thespacedevsApi = provideThespacedevsApi()
+
+
     private val _photo = MutableStateFlow<ApodItem?>(null)
-    open val photo : StateFlow<ApodItem?> = _photo
+     val photo : StateFlow<ApodItem?> = _photo
+
+    private val _launches = MutableStateFlow<List<LaunchItem>>(emptyList())
+     val launches : StateFlow<List<LaunchItem>> = _launches
 
     init {
         loadTodayPhoto()
+        loadUpcomingLaunches()
 
     }
 
-    fun loadTodayPhoto(){
+    private fun loadTodayPhoto() {
         viewModelScope.launch {
             try {
-                _photo.value = api.getApod()
-                val rawJson = api.getApod()
-                Log.d("APOD_RESULT", "Response: $rawJson")
+                val result = apodApi.getApod()
+                _photo.value = result
+                Log.d("APOD_RESULT", "Response: $result")
             } catch (e: Exception) {
                 // TODO добавить обработку ошибок
                 _photo.value = null
-                Log.d("mihael_net_error",e.message.toString())
+                Log.d("mihael_net_error", e.message.toString())
             }
+        }
+    }
 
+    private fun loadUpcomingLaunches() {
+        viewModelScope.launch{
+            try {
+                val response = thespacedevsApi.getUpcomingLaunches().results
+                _launches.value = response
+                Log.d("UPCOMING_LAUNCHES_RESULT", "Response: $response")
+            } catch (e: Exception) {
+                // TODO добавить обработку ошибок
+                _launches.value = emptyList()
+                Log.d("mihael_net_error", e.message.toString())
+                Log.d("mihael_net_error", "Error loading launches", e)
+            }
         }
     }
 }
